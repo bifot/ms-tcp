@@ -1,11 +1,6 @@
 const net = require('net');
 const JsonSocket = require('json-socket');
-const Queue = require('./managers/Queue');
 const createID = require('./helpers/createID');
-
-const queue = new Queue();
-
-queue.run();
 
 class Client {
   constructor({ services }) {
@@ -29,43 +24,34 @@ class Client {
   }
 
   async createSockets() {
-    await queue.addTask(async () => {
-      if (this.socketsCreated) {
-        return;
-      }
+    await Promise.all(
+      Object.entries(this.services).map(async ([service, { host, port, ready }]) => {
+        if (ready) {
+          return;
+        }
 
-      await Promise.all(
-        Object.entries(this.services).map(async ([service, { host, port, ready }]) => {
-          if (ready) {
-            return;
-          }
+        await new Promise((resolve) => {
+          const socket = new JsonSocket(new net.Socket());
 
-          await new Promise((resolve) => {
-            const socket = new JsonSocket(new net.Socket());
+          socket.connect(port, host, () => {
+            this.services[service].ready = true;
+            this.sockets.set(service, socket);
+            resolve();
+          });
 
-            socket.connect(port, host, () => {
-              console.log('connected');
-
-              this.services[service].ready = true;
-              this.sockets.set(service, socket);
-              resolve();
-            });
-
-            ['error', 'close'].forEach((event) => {
-              socket.on(event, () => {
-                setTimeout(() => {
-                  this.services[service].ready = false;
-                  this.socketsCreated = false;
-                  this.createSockets();
-                }, 1000);
-              });
+          ['error', 'close'].forEach((event) => {
+            socket.on(event, () => {
+              setTimeout(() => {
+                this.services[service].ready = false;
+                this.createSockets();
+              }, 1000);
             });
           });
-        }),
-      );
+        });
+      }),
+    );
 
-      this.socketsCreated = true;
-    });
+    this.socketsCreated = true;
   }
 
   async ask(name, payload, options = { timeout: 5000, attempts: 5 }) {
@@ -74,21 +60,21 @@ class Client {
     }
 
     const [service, action] = name.split('.');
-    const socket = this.sockets.get(service);
+    const request = { action, payload };
 
-    const send = (socket, index = 0) => {
+    const send = (index = 0) => {
       if (options.attempts === index) {
         return;
       }
 
-      return this.send(socket, action, payload, options)
-        .catch(() => send(this.sockets.get(service), index + 1));
+      return this.send(service, request, options)
+        .catch(() => send(index + 1));
     };
 
-    return send(socket);
+    return send();
   }
 
-  send(socket, action, payload, options) {
+  send(service, request, options) {
     let resolve;
     let reject;
 
@@ -98,6 +84,7 @@ class Client {
     });
 
     const requestId = createID();
+    const socket = this.sockets.get(service);
 
     this.requests.set(requestId, {
       resolve,
@@ -108,10 +95,7 @@ class Client {
     });
 
     socket.sendMessage({
-      data: {
-        action,
-        payload,
-      },
+      data: request,
       meta: {
         id: requestId,
         host: this.host,
