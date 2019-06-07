@@ -84,7 +84,7 @@ This method asks other service for something.
 
 ```js
 app.use(async (ctx, next) => {
-  const isAuth = await ctx.tcp.ask('users', {
+  const isAuth = await ctx.tcp.ask('users.checkAuth', {
     login: ctx.query.login,
     password: ctx.query.password,
   });
