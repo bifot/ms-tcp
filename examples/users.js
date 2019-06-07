@@ -4,7 +4,7 @@ const tcp = require('../src');
 const app = new Koa();
 const rpc = new tcp.Client({
   services: {
-    balances: '127.0.0.1:3000',
+    balances: process.env.TCP_ADDRESS,
   },
 });
 
@@ -21,4 +21,4 @@ app.use(async (ctx) => {
   };
 });
 
-app.listen(process.env.PORT);
+module.exports = app.listen(process.env.APP_PORT);
