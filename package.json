@@ -1,0 +1,40 @@
+{
+  "name": "ms-tcp",
+  "version": "0.0.1",
+  "description": "Solution for communication between services using TCP protocol with built-in auto-retry & round-robin balancing. 🔬",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "NODE_ENV=test PORT=5000 mocha tests/* --exit --timeout 60000"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bifot/ms-tcp.git"
+  },
+  "keywords": [
+    "udp",
+    "microservices"
+  ],
+  "author": "Mikhail Semin",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/bifot/ms-tcp/issues"
+  },
+  "homepage": "https://github.com/bifot/ms-tcp#readme",
+  "devDependencies": {
+    "axios": "^0.18.0",
+    "chai": "^4.2.0",
+    "chai-http": "^4.3.0",
+    "expect": "^24.7.1",
+    "koa": "^2.7.0",
+    "koa-bodyparser": "^4.2.1",
+    "mocha": "^6.1.4"
+  },
+  "dependencies": {
+    "json-socket": "^0.3.0",
+    "roundround": "^0.2.0"
+  },
+  "directories": {
+    "example": "examples",
+    "test": "tests"
+  }
+}
