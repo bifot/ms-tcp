@@ -24,34 +24,40 @@ class Client {
   }
 
   async createSockets() {
-    await Promise.all(
-      Object.entries(this.services).map(async ([service, { host, port, ready }]) => {
-        if (ready) {
-          return;
-        }
+    try {
+      await Promise.all(
+        Object.entries(this.services).map(async ([service, { host, port, ready }]) => {
+          if (ready) {
+            return;
+          }
 
-        await new Promise((resolve) => {
-          const socket = new JsonSocket(new net.Socket());
+          await new Promise((resolve, reject) => {
+            const socket = new JsonSocket(new net.Socket());
+            const timer = setTimeout(reject, 1000);
 
-          socket.connect(port, host, () => {
-            this.services[service].ready = true;
-            this.sockets.set(service, socket);
-            resolve();
-          });
+            socket.connect(port, host, () => {
+              this.services[service].ready = true;
+              this.sockets.set(service, socket);
+              clearTimeout(timer);
+              resolve();
+            });
 
-          ['error', 'close'].forEach((event) => {
-            socket.on(event, () => {
-              setTimeout(() => {
-                this.services[service].ready = false;
-                this.createSockets();
-              }, 1000);
+            ['error', 'close'].forEach((event) => {
+              socket.on(event, () => {
+                setTimeout(() => {
+                  this.services[service].ready = false;
+                  this.createSockets();
+                }, 1000);
+              });
             });
           });
-        });
-      }),
-    );
+        }),
+      );
 
-    this.socketsCreated = true;
+      this.socketsCreated = true;
+    } catch (err) {
+      return this.createSockets();
+    }
   }
 
   async ask(name, payload, options = { timeout: 5000, attempts: 5 }) {
