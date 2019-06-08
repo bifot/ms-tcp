@@ -22,7 +22,7 @@ $ npm test
 
 ### Server
 
-#### .constuctor()
+#### .constructor()
 
 ```js
 const server = new tcp.Server();
@@ -57,10 +57,10 @@ This method starts listening.
 
 ### Client
 
-#### .constuctor(options)
+#### .constructor(options)
 
-* `options` <?[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)>
-  * `services` <[?Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)> Available services
+* `options` <[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)>
+  * `services` <[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)> Available services
     * `[key]` - <[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type)> Service name
     * `[value]` - <[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type)> Service's address
     
@@ -103,6 +103,7 @@ This method returns middleware for Koa or Express.
 const Koa = require('koa');
 const tcp = require('tcp');
 
+const app = new Koa();
 const client = new tcp.Client();
 
 app.use(client.middleware());
