@@ -6,6 +6,7 @@ const rpc = new tcp.Client({
   services: {
     balances: process.env.TCP_ADDRESS,
   },
+  host: process.env.APP_HOST,
 });
 
 app.use(rpc.middleware());

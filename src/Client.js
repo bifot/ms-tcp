@@ -3,7 +3,7 @@ const JsonSocket = require('json-socket');
 const createID = require('./helpers/createID');
 
 class Client {
-  constructor({ services }) {
+  constructor({ services, host }) {
     this.services = Object.entries(services).reduce((object, [name, address]) => {
       const [host, port] = address.split(':');
 
@@ -17,6 +17,7 @@ class Client {
       };
     }, {});
 
+    this.host = host;
     this.sockets = new Map();
     this.requests = new Map();
 
@@ -150,7 +151,10 @@ class Client {
     server.listen(() => {
       const { address, port } = server.address();
 
-      this.host = address === '::' ? '127.0.0.1' : address;
+      if (!this.host) {
+        this.host = address === '::' ? '127.0.0.1' : address;
+      }
+
       this.port = port;
     });
 
