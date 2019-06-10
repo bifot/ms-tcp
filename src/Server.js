@@ -1,16 +1,52 @@
 const net = require('net');
 const JsonSocket = require('json-socket');
+const Context = require('./Context');
 
 class Server {
   constructor() {
-    this.actions = new Map();
+    this.middlewares = [];
     this.sockets = new Map();
   }
 
-  on(action, callback) {
-    this.actions.set(action, callback);
+  on(action, ...middlewares) {
+    this.use(action, ...middlewares);
 
     return this;
+  }
+
+  use(...middlewares) {
+    let action;
+
+    if (typeof middlewares[0] === 'string') {
+      action = middlewares.shift();
+    }
+
+    middlewares.forEach((fn) => {
+      const index = this.middlewares.length;
+
+      this.middlewares.push({
+        action,
+        fn: (ctx) => fn(ctx, () => this.next(ctx, index + 1)),
+      })
+    });
+
+    return this;
+  }
+
+  next(ctx, index = 0) {
+    const middleware = this.middlewares[index];
+
+    if (!middleware) {
+      return;
+    }
+
+    const { fn, action } = middleware;
+
+    if (!action || action === ctx.data.action) {
+      return fn(ctx);
+    }
+
+    return this.next(ctx, index + 1);
   }
 
   listen(port, host, callback) {
@@ -18,12 +54,6 @@ class Server {
       socket = new JsonSocket(socket);
 
       socket.on('message', async ({ data, meta }) => {
-        const action = this.actions.get(data.action);
-
-        if (!action) {
-          return;
-        }
-
         let socket = this.sockets.get(`${meta.host}:${meta.port}`);
 
         if (!socket) {
@@ -37,9 +67,13 @@ class Server {
           });
         }
 
+        const context = new Context(this, { data, meta });
+
+        await this.next(context);
+
         socket.sendMessage({
           id: meta.id,
-          response: await action(data.payload),
+          response: context.response,
         });
       });
     });

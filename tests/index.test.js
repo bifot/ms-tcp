@@ -10,11 +10,11 @@ const { expect, request } = chai;
 it('should get response', async () => {
   const { status, body } = await request(app)
     .get('/')
-    .query({ id : 1 });
+    .query({ id : 200 });
 
   expect(status).to.be.equal(200);
   expect(body).to.be.deep.equal({
     name: 'Mikhail Semin',
-    balance: 100,
+    balance: 20000,
   });
 });
