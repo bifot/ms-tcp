@@ -22,16 +22,16 @@ $ npm test
 
 ### Server
 
-#### .constuctor()
+#### .constructor()
 
 ```js
 const server = new tcp.Server();
 ```
 
-#### .on(action, callback)
+#### .on(action, ...middlewares)
 
 * `event` <[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type)> Action name
-* `callback` <[function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function)> Action callback
+* `...middlewares` <[function[]](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function)> Action middlewares
 
 This method creates action.
 
@@ -47,6 +47,12 @@ server.on('get', async ({ userId }) => {
 });
 ```
 
+#### .use(...middlewares)
+
+* `...middlewares` <[function[]](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function)> Common middlewares
+
+This method creates common middlewares.
+
 #### .listen(port[, host, callback])
 
 * `port` <[number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type)>
@@ -57,12 +63,13 @@ This method starts listening.
 
 ### Client
 
-#### .constuctor(options)
+#### .constructor(options)
 
-* `options` <?[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)>
-  * `services` <[?Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)> Available services
+* `options` <[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)>
+  * `services` <[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)> Available services
     * `[key]` - <[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type)> Service name
-    * `[value]` - <[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type)> Service's address
+    * `[value]` - <[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type) / [Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)<[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type)>> Service's address
+  * `host` <[?string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type)> Current app's host
     
 ```js
 const client = new tcp.Client({
@@ -103,6 +110,7 @@ This method returns middleware for Koa or Express.
 const Koa = require('koa');
 const tcp = require('tcp');
 
+const app = new Koa();
 const client = new tcp.Client();
 
 app.use(client.middleware());

@@ -2,13 +2,14 @@ const Koa = require('koa');
 const tcp = require('../src');
 
 const app = new Koa();
-const rpc = new tcp.Client({
+const client = new tcp.Client({
   services: {
-    balances: process.env.TCP_ADDRESS,
+    balances: process.env.TCP_ADDRESS.split(','),
   },
+  host: process.env.APP_HOST,
 });
 
-app.use(rpc.middleware());
+app.use(client.middleware());
 
 app.use(async (ctx) => {
   const balance = await ctx.tcp.ask('balances.get', {

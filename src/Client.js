@@ -1,64 +1,78 @@
 const net = require('net');
+const roundround = require('roundround');
 const JsonSocket = require('json-socket');
 const createID = require('./helpers/createID');
+const toArray = require('./helpers/toArray');
 
 class Client {
-  constructor({ services }) {
-    this.services = Object.entries(services).reduce((object, [name, address]) => {
-      const [host, port] = address.split(':');
-
-      return {
-        ...object,
-        [name]: {
-          host,
-          port,
-          ready: false,
-        },
-      };
-    }, {});
-
+  constructor({ services, host }) {
+    this.host = host;
     this.sockets = new Map();
     this.requests = new Map();
 
     this.init();
+
+    Object.entries(services).forEach(([name, addresses]) => {
+      toArray(addresses).forEach((address) => {
+        const [host, port] = address.split(':');
+
+        this.createSocket({
+          name,
+          host,
+          port,
+        });
+      });
+    });
   }
 
-  async createSockets() {
-    await Promise.all(
-      Object.entries(this.services).map(async ([service, { host, port, ready }]) => {
-        if (ready) {
-          return;
+  async createSocket(service) {
+    const { name, host, port } = service;
+
+    await new Promise((resolve) => {
+      const socket = new JsonSocket(new net.Socket());
+
+      socket.connect(port, host, () => {
+        const sockets = this.sockets.get(name);
+
+        const clients = [
+          ...(sockets ? sockets.clients : []),
+          {
+            socket,
+            host,
+            port,
+          },
+        ];
+
+        this.sockets.set(name, {
+          clients,
+          get: roundround(clients),
+        });
+
+        resolve();
+      });
+
+      socket.on('error', () => {
+        socket._socket.destroy();
+      });
+
+      socket.on('close', () => {
+        const sockets = this.sockets.get(name);
+
+        if (sockets) {
+          const clients = sockets.clients.filter(item => !(item.port === port && item.host === host));
+
+          this.sockets.set(name, {
+            clients,
+            get: roundround(clients),
+          });
         }
 
-        await new Promise((resolve) => {
-          const socket = new JsonSocket(new net.Socket());
-
-          socket.connect(port, host, () => {
-            this.services[service].ready = true;
-            this.sockets.set(service, socket);
-            resolve();
-          });
-
-          ['error', 'close'].forEach((event) => {
-            socket.on(event, () => {
-              setTimeout(() => {
-                this.services[service].ready = false;
-                this.createSockets();
-              }, 1000);
-            });
-          });
-        });
-      }),
-    );
-
-    this.socketsCreated = true;
+        this.createSocket(service);
+      });
+    });
   }
 
   async ask(name, payload, options = { timeout: 5000, attempts: 5 }) {
-    if (!this.socketsCreated) {
-      await this.createSockets();
-    }
-
     const [service, action] = name.split('.');
     const request = { action, payload };
 
@@ -84,7 +98,21 @@ class Client {
     });
 
     const requestId = createID();
-    const socket = this.sockets.get(service);
+    const sockets = this.sockets.get(service);
+
+    if (!sockets) {
+      setTimeout(reject, options.timeout);
+
+      return promise;
+    }
+
+    const { socket } = sockets.get() || {};
+
+    if (!socket) {
+      setTimeout(reject, options.timeout);
+
+      return promise;
+    }
 
     this.requests.set(requestId, {
       resolve,
@@ -144,7 +172,10 @@ class Client {
     server.listen(() => {
       const { address, port } = server.address();
 
-      this.host = address === '::' ? '127.0.0.1' : address;
+      if (!this.host) {
+        this.host = address === '::' ? '127.0.0.1' : address;
+      }
+
       this.port = port;
     });
 
