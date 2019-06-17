@@ -82,7 +82,7 @@ class Client {
       }
 
       return this.send(service, request, options)
-        .catch(() => send(index + 1));
+        .catch(err => console.error(err) || send(index + 1));
     };
 
     return send();
@@ -101,7 +101,7 @@ class Client {
     const sockets = this.sockets.get(service);
 
     if (!sockets) {
-      setTimeout(reject, options.timeout);
+      setTimeout(() => reject('No sockets for given service'), options.timeout);
 
       return promise;
     }
@@ -109,7 +109,7 @@ class Client {
     const { socket } = sockets.get() || {};
 
     if (!socket) {
-      setTimeout(reject, options.timeout);
+      setTimeout(() => reject('Socket is not found'), options.timeout);
 
       return promise;
     }
@@ -118,7 +118,7 @@ class Client {
       resolve,
       timer: setTimeout(() => {
         this.requests.delete(requestId);
-        reject();
+        reject('Timed out');
       }, options.timeout),
     });
 
