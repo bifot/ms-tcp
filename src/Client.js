@@ -5,8 +5,9 @@ const createID = require('./helpers/createID');
 const toArray = require('./helpers/toArray');
 
 class Client {
-  constructor({ services, host }) {
+  constructor({ services, host, port }) {
     this.host = host;
+    this.port = port;
     this.sockets = new Map();
     this.requests = new Map();
 
@@ -169,15 +170,19 @@ class Client {
       });
     });
 
-    server.listen(() => {
-      const { address, port } = server.address();
+    if (this.port) {
+      server.listen(this.port, this.host);
+    } else {
+      server.listen(() => {
+        const { address, port } = server.address();
 
-      if (!this.host) {
-        this.host = address === '::' ? '127.0.0.1' : address;
-      }
+        if (!this.host) {
+          this.host = address === '::' ? '127.0.0.1' : address;
+        }
 
-      this.port = port;
-    });
+        this.port = port;
+      });
+    }
 
     return server;
   }
