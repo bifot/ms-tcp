@@ -60,6 +60,10 @@ class Server {
           await new Promise((resolve) => {
             socket = new JsonSocket(new net.Socket());
 
+            socket.on('error', (err) => {
+              console.error(err);
+            });
+
             socket.connect(meta.port, meta.host, () => {
               this.sockets.set(`${meta.host}:${meta.port}`, socket);
               resolve();
