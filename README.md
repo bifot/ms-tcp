@@ -38,12 +38,12 @@ This method creates action.
 ```js
 const { Balances } = require('./db');
 
-server.on('get', async ({ userId }) => {
+server.on('get', async (ctx) => {
   const { amount } = await Balances.findOne({
-    userId,
+    userId: ctx.payload.userId,
   });
   
-  return amount;
+  ctx.reply(amount);
 });
 ```
 
@@ -68,10 +68,8 @@ This method starts listening.
 * `options` <[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)>
   * `services` <[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)> Available services
     * `[key]` - <[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type)> Service name
-    * `[value]` - <[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type) / [Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)<[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type)>> Service's address
-  * `host` <[?string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type)> Current app's host
-  * `port` <[?number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type)> Current app's port
-    
+    * `[value]` - <[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type) / [Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)<[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type)> / [Object{host, port}](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object) / [Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Arra)<[Object{host, port}](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)>> Service's address
+
 ```js
 const client = new tcp.Client({
   services: {

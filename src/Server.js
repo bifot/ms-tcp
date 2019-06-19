@@ -1,11 +1,9 @@
-const net = require('net');
-const JsonSocket = require('json-socket');
+const tcp = require('fast-tcp');
 const Context = require('./Context');
 
 class Server {
   constructor() {
     this.middlewares = [];
-    this.sockets = new Map();
   }
 
   on(action, ...middlewares) {
@@ -42,7 +40,7 @@ class Server {
 
     const { fn, action } = middleware;
 
-    if (!action || action === ctx.data.action) {
+    if (!action || action === ctx.request.action) {
       return fn(ctx);
     }
 
@@ -50,39 +48,25 @@ class Server {
   }
 
   listen(port, host, callback) {
-    const server = net.createServer((socket) => {
-      socket = new JsonSocket(socket);
+    const server = new tcp.Server();
 
-      socket.on('message', async ({ data, meta }) => {
-        let socket = this.sockets.get(`${meta.host}:${meta.port}`);
-
-        if (!socket) {
-          await new Promise((resolve) => {
-            socket = new JsonSocket(new net.Socket());
-
-            socket.on('error', (err) => {
-              console.error(err);
-            });
-
-            socket.connect(meta.port, meta.host, () => {
-              this.sockets.set(`${meta.host}:${meta.port}`, socket);
-              resolve();
-            });
-          });
+    server.on('connection', (connection) => {
+      connection.on('message', async (message, callback) => {
+        if (!callback || typeof callback !== 'function') {
+          return;
         }
 
-        const context = new Context(this, { data, meta });
+        const context = new Context(this, message);
 
         await this.next(context);
 
-        socket.sendMessage({
-          id: meta.id,
-          response: context.response,
-        });
+        callback(context.response);
       });
     });
 
-    return server.listen(port, host, callback);
+    server.listen(port, host, callback);
+
+    return this;
   }
 }
 

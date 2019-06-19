@@ -1,12 +1,11 @@
 const Koa = require('koa');
-const tcp = require('../src');
+const { Client } = require('../src');
 
 const app = new Koa();
-const client = new tcp.Client({
+const client = new Client({
   services: {
     balances: process.env.TCP_ADDRESS.split(','),
   },
-  host: process.env.APP_HOST,
 });
 
 app.use(client.middleware());

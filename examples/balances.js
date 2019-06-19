@@ -1,6 +1,6 @@
-const tcp = require('../src');
+const { Server } = require('../src');
 
-const server = new tcp.Server();
+const server = new Server();
 
 const validate = async (ctx, next) => {
   if (ctx.payload.id < 20) {
