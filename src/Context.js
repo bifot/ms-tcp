@@ -1,9 +1,8 @@
 class Context {
   constructor(app, message) {
     this.app = app;
-    this.data = message.data;
-    this.meta = message.meta;
-    this.payload = message.data.payload;
+    this.request = message;
+    this.payload = message.payload;
   }
 
   reply(response) {

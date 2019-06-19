@@ -30,7 +30,7 @@
     "mocha": "^6.1.4"
   },
   "dependencies": {
-    "json-socket": "^0.3.0",
+    "fast-tcp": "^3.3.2",
     "roundround": "^0.2.0"
   },
   "directories": {
