@@ -38,12 +38,12 @@ This method creates action.
 ```js
 const { Balances } = require('./db');
 
-server.on('get', async ({ userId }) => {
+server.on('get', async (ctx) => {
   const { amount } = await Balances.findOne({
-    userId,
+    userId: ctx.payload.userId,
   });
   
-  return amount;
+  ctx.reply(amount);
 });
 ```
 
