@@ -58,7 +58,7 @@ class Client {
       throw new Error(`No sockets for ${service} service`);
     }
 
-    const emit = (index = 1) => {
+    const emit = (index = 0) => {
       if (options.attempts === index) {
         return;
       }
