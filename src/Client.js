@@ -51,8 +51,13 @@ class Client {
 
   async ask(name, payload, options = { timeout: 1500, attempts: 5 }) {
     const [service, action] = name.split('.');
-    const sockets = this.sockets.get(service);
     const request = { action, payload };
+    const sockets = this.sockets.get(service);
+    const mock = this.responses && this.responses[service] && this.responses[service][action];
+
+    if (mock) {
+      return typeof mock === 'function' ? mock(data) : mock;
+    }
 
     if (!sockets) {
       throw new Error(`No sockets for ${service} service`);
@@ -74,6 +79,12 @@ class Client {
     };
 
     return emit();
+  }
+
+  mock(responses) {
+    this.responses = responses;
+
+    return this;
   }
 
   middleware() {

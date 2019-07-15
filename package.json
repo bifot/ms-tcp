@@ -1,6 +1,6 @@
 {
   "name": "ms-tcp",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "description": "Solution for communication between services using TCP protocol with built-in auto-retry & reconnect. 🔬",
   "main": "src/index.js",
   "scripts": {
