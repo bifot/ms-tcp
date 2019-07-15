@@ -78,6 +78,39 @@ const client = new tcp.Client({
 });
 ```
 
+#### .mock(requests)
+
+* `requests` <[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)>
+  * `[key]` <[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type)> Service name
+  * `[value]` <[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)> Service requests
+    * `[key]` <[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type)> Event name
+    * `[value]` <[any](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures)> Event response
+    
+This method save mocks responses for [`.ask`](#askname-payload-options).
+    
+```js
+if (process.env.NODE_ENV === 'test') {
+  client.mock({
+    balances: {
+      get: 200,
+    },
+    users: {
+      create: payload => payload.userId >= 100,
+    },
+  });
+}
+
+const [balance, badUser, goodUser] = await Promise.all([
+  client.ask('balances.get', { userId: 1 }),
+  client.ask('users.create', { userId: 10 }),
+  client.ask('users.create', { userId: 200 }),
+]);
+
+console.log(balance);   // => 200
+console.log(badUser);   // => false
+console.log(goodUser);  // => true
+```
+
 #### .ask(name[, payload, options])
 
 * `event` <[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type)> Event name in format `<service_name>.<action>`
