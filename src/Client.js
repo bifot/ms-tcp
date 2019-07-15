@@ -56,7 +56,7 @@ class Client {
     const mock = this.responses && this.responses[service] && this.responses[service][action];
 
     if (mock) {
-      return typeof mock === 'function' ? mock(data) : mock;
+      return typeof mock === 'function' ? mock(payload) : mock;
     }
 
     if (!sockets) {
