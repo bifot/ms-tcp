@@ -21,7 +21,7 @@
   },
   "homepage": "https://github.com/bifot/ms-tcp#readme",
   "devDependencies": {
-    "axios": "^0.18.0",
+    "axios": "^0.21.1",
     "chai": "^4.2.0",
     "chai-http": "^4.3.0",
     "expect": "^24.7.1",
