@@ -27,7 +27,7 @@
     "expect": "^24.7.1",
     "koa": "^2.7.0",
     "koa-bodyparser": "^4.2.1",
-    "mocha": "^6.1.4"
+    "mocha": "^10.2.0"
   },
   "dependencies": {
     "fast-tcp": "^3.3.2",
